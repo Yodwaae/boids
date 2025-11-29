@@ -8,15 +8,18 @@ public class LocustBoid : MonoBehaviour
 
     // NOTE : No need to enforce min < max in editor as Unity will swap them anyway in Random.Range() if need be
     [Header("Boid Settings")]
-    public float minVelocity = 1f;
-    public float maxVelocity = 5f;
+    public float minVelocity = .5f;
+    public float maxVelocity = 3f;
 
-    public float closerFactor = 100f;   // Cohesion
-    public float withFactor = 40f;      // Alignment
-    public float furtherFactor = 5f;    // Separation
+    public float closerFactor = 50f;   // Cohesion
+    public float withFactor = 20f;      // Alignment
+    public float furtherFactor = 1.5f;    // Separation
 
-    public float minDistance = 20f;     
-    public float neighborRadius = 200f; 
+    public float minDistance = .8f;     
+    public float neighborRadius = 2.5f;
+
+    public float avoidDistance = 1.5f;
+    public float avoidFactor = 500f;
 
     private Vector2 velocity;
     private static List<LocustBoid> boids = new List<LocustBoid>();
@@ -38,6 +41,7 @@ public class LocustBoid : MonoBehaviour
         MoveCloser();
         MoveWith();
         MoveFurther();
+        AvoidWalls();
 
         // Clamp the velocity if greater than maxVelocity
         if (velocity.magnitude > maxVelocity)
@@ -45,6 +49,7 @@ public class LocustBoid : MonoBehaviour
 
         // Move the boid
         transform.position += (new Vector3(velocity.x, velocity.y, 0f) * Time.deltaTime);
+        
     }
 
     // ===== HELPERS FUNCTIONS =====
@@ -86,15 +91,13 @@ public class LocustBoid : MonoBehaviour
         velocity -= (average / closerFactor);
     }
 
-
     private void MoveWith() {
 
         // Initialisation
         Vector2 sum = Vector2.zero;
         int count = 0;
 
-
-        // Get the sum of the position of the other boids
+        // Get the sum of the velocity of the other boids
         foreach (LocustBoid boid in boids) {
 
             // Skip itself
@@ -119,31 +122,30 @@ public class LocustBoid : MonoBehaviour
         velocity += (average  / withFactor);
     }
 
-    private void MoveFurther()
-    {
+    private void MoveFurther(){
 
         // Initialisation
         Vector2 repulsion = Vector2.zero;
         int count = 0;
 
-        foreach (LocustBoid boid in boids)
-        {
+        foreach (LocustBoid boid in boids) {
 
             // Skip itself
             if (boid == this)
                 continue;
              
+            // Compute the distance to the other boid
             float distance = Distance(boid);
 
-            //
-            if (distance < minDistance)
-            {
+            // If the neighbor is too close
+            if (distance < minDistance){
 
+                // Compute the direction pointing away from the other
                 float xDiff = (transform.position.x - boid.transform.position.x);
                 float yDiff = (transform.position.y - boid.transform.position.y);
-
                 Vector2 diff = new Vector2(xDiff, yDiff);
 
+                // Normalise and weight the repulsion
                 if (diff != Vector2.zero)
                     repulsion += diff.normalized / distance;
 
@@ -157,11 +159,22 @@ public class LocustBoid : MonoBehaviour
 
         // Compute the average and set the velocity
         repulsion /= count;
-
-        // FIX: must be += (because diff is already pointing away)
         velocity += (repulsion / furtherFactor);
     }
 
+    private void AvoidWalls() {
+
+        // Get the direction the boid is moving towards
+        Vector3 direction = new Vector3(velocity.x, velocity.y, 0f).normalized;
+
+        // Forward raycast
+        if (Physics.Raycast(transform.position, direction, out RaycastHit hit, avoidDistance)) {
+
+            // Push the boid away from the obstacle based on the normal
+            Vector3 normal = hit.normal;
+            velocity += new Vector2(normal.x, normal.y) * avoidFactor * Time.deltaTime;
+        }
+    }
 
 }
 
