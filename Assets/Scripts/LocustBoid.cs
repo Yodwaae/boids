@@ -49,7 +49,10 @@ public class LocustBoid : MonoBehaviour
 
         // Move the boid
         transform.position += (new Vector3(velocity.x, velocity.y, 0f) * Time.deltaTime);
-        
+
+        if (velocity.sqrMagnitude > 0.0001f)
+            transform.right = velocity;     // or transform.up = velocity depending on your sprite
+
     }
 
     // ===== HELPERS FUNCTIONS =====
