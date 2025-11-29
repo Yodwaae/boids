@@ -2,7 +2,7 @@ using UnityEngine;
 
 using System.Collections.Generic;
 
-public class AntBoid : MonoBehaviour
+public class LocustBoid : MonoBehaviour
 {
     // TODO Set the functions back to private, it's just that they are harder to see when they are private and not yet called
 
@@ -11,13 +11,13 @@ public class AntBoid : MonoBehaviour
     // NOTE / No need to enforce min < max in editor as Unity will swap them anyway in Random.Range() if need be
     public float minVelocity;
     public float maxVelocity;
-    public float closerFactor;
+    public float closerFactor = 100f;
     public float furtherFactor;
     public float withFactor;
 
     
     private Vector2 velocity;
-    private static List<AntBoid> boids = new List<AntBoid>();
+    private static List<LocustBoid> boids = new List<LocustBoid>();
 
 
     private void Start()
@@ -36,17 +36,23 @@ public class AntBoid : MonoBehaviour
     }
 
     // ===== HELPERS FUNCTIONS =====
-    public float Distance(AntBoid other) { return Vector2.Distance(velocity, other.velocity); }
 
-    public void MoveCloser(AntBoid other) {
+    public float Distance(LocustBoid other) { return Vector2.Distance(velocity, other.velocity); }
 
+    // ===== BOIDS THREE RULES =====
+
+    public void MoveCloser(LocustBoid other) {
+
+        // Initialisation
+        Vector2 average = Vector2.zero;
+
+        // Early return if not enough boids
         if (boids.Count < 1)
             return;
 
-        Vector2 average = Vector2.zero;
 
-        // Get the average position of the other boids
-        foreach (AntBoid boid in boids){
+        // Get the sum of the position of the other boids
+        foreach (LocustBoid boid in boids){
 
             // Skip itself
             if (other == boid) 
@@ -57,12 +63,14 @@ public class AntBoid : MonoBehaviour
 
         }
 
+        // Compute the average and the velocity
         average /= (boids.Count - 1);
-
         velocity = average/ closerFactor;
     }
-    public void MoveFurther(AntBoid other) { }
-    public void MoveWith(AntBoid other) { }
+
+    public void MoveFurther(LocustBoid other) { }
+
+    public void MoveWith(LocustBoid other) { }
 
 
 }
