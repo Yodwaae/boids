@@ -8,8 +8,8 @@ public class LocustBoid : MonoBehaviour
 
     // NOTE : No need to enforce min < max in editor as Unity will swap them anyway in Random.Range() if need be
     [Header("Boid Settings")]
-    public float minVelocity = .5f;
-    public float maxVelocity = 3f;
+    public float minVelocity = 1f;
+    public float maxVelocity = 5f;
 
     public float closerFactor = 50f;   // Cohesion
     public float withFactor = 20f;      // Alignment
@@ -22,16 +22,15 @@ public class LocustBoid : MonoBehaviour
     public float avoidFactor = 500f;
 
     private Vector2 velocity;
-    private static List<LocustBoid> boids = new List<LocustBoid>();
 
     private void Start()
     {
         // Random Velocity Initialisation
-        velocity.x = Random.Range(minVelocity, maxVelocity) / maxVelocity;
-        velocity.y = Random.Range(minVelocity, maxVelocity) / maxVelocity;
+        velocity.x = Random.Range(minVelocity, maxVelocity);
+        velocity.y = Random.Range(minVelocity, maxVelocity);
 
         // Add itself to the list of boids
-        boids.Add(this);
+        LocustManager.boids.Add(this);
     }
 
 
@@ -69,7 +68,7 @@ public class LocustBoid : MonoBehaviour
         int count = 0;
 
         // Get the sum of the position of the other boids
-        foreach (LocustBoid boid in boids) {
+        foreach (LocustBoid boid in LocustManager.boids) {
 
             // Skip itself
             if (boid == this) 
@@ -101,7 +100,7 @@ public class LocustBoid : MonoBehaviour
         int count = 0;
 
         // Get the sum of the velocity of the other boids
-        foreach (LocustBoid boid in boids) {
+        foreach (LocustBoid boid in LocustManager.boids) {
 
             // Skip itself
             if (boid == this)
@@ -131,7 +130,7 @@ public class LocustBoid : MonoBehaviour
         Vector2 repulsion = Vector2.zero;
         int count = 0;
 
-        foreach (LocustBoid boid in boids) {
+        foreach (LocustBoid boid in LocustManager.boids) {
 
             // Skip itself
             if (boid == this)
@@ -177,6 +176,11 @@ public class LocustBoid : MonoBehaviour
             Vector3 normal = hit.normal;
             velocity += new Vector2(normal.x, normal.y) * avoidFactor * Time.deltaTime;
         }
+    }
+
+    private void EatCrop() {
+        Vector3 offset = new Vector3(Random.Range(.5f, 1.5f), Random.Range(.5f, 1.5f), 0);
+        LocustManager.instance.InstantiateLocust(transform.position + offset, transform.rotation);
     }
 
 }
