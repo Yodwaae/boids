@@ -42,12 +42,14 @@ public class LocustBoid : MonoBehaviour
         MoveFurther();
         AvoidWalls();
 
-        // Clamp the velocity if greater than maxVelocity
+        // Clamp the velocity between min and max velocity
         if (velocity.magnitude > maxVelocity)
             velocity = velocity.normalized * maxVelocity;
+        else if (velocity.magnitude < minVelocity)
+            velocity = velocity.normalized * minVelocity;
 
-        // Move the boid
-        transform.position += (new Vector3(velocity.x, velocity.y, 0f) * Time.deltaTime);
+            // Move the boid
+            transform.position += (new Vector3(velocity.x, velocity.y, 0f) * Time.deltaTime);
 
         if (velocity.sqrMagnitude > 0.0001f)
             transform.right = velocity;     // or transform.up = velocity depending on your sprite
