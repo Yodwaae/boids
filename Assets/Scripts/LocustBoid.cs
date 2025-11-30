@@ -20,6 +20,7 @@ public class LocustBoid : MonoBehaviour
 
     public float avoidDistance = 1.5f;
     public float avoidFactor = 500f;
+    public float[] avoidRaycastAngles = { 0f, -15f, 15f };
 
     private Vector2 velocity;
 
@@ -169,15 +170,24 @@ public class LocustBoid : MonoBehaviour
     private void AvoidWalls() {
 
         // Get the direction the boid is moving towards
-        Vector3 direction = new Vector3(velocity.x, velocity.y, 0f).normalized;
+        Vector3 baseDirection = new Vector3(velocity.x, velocity.y, 0f).normalized;
 
-        // Forward raycast
-        if (Physics.Raycast(transform.position, direction, out RaycastHit hit, avoidDistance)) {
+        foreach(float angle in avoidRaycastAngles) {
 
-            // Push the boid away from the obstacle based on the normal
-            Vector3 normal = hit.normal;
-            velocity += new Vector2(normal.x, normal.y) * avoidFactor * Time.deltaTime;
+            // Compute the direction based on the angle and based direction
+            Vector3 direction = Quaternion.Euler(0 ,0, angle) * baseDirection;
+
+            if (Physics.Raycast(transform.position, baseDirection, out RaycastHit hit, avoidDistance)) {
+
+                // Push the boid away from the obstacle based on the normal
+                Vector3 normal = hit.normal;
+                velocity += new Vector2(normal.x, normal.y) * avoidFactor * Time.deltaTime;
+
+                // We stop as soon as we got a hit
+                break;
+            }
         }
+
     }
 
     private void EatCrop() {

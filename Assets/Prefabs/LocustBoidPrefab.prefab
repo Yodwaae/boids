@@ -780,8 +780,12 @@ MonoBehaviour:
   furtherFactor: 1.5
   minDistance: 0.8
   neighborRadius: 2.5
-  avoidDistance: 1.5
+  avoidDistance: 3
   avoidFactor: 500
+  avoidRaycastAngles:
+  - 0
+  - -15
+  - 15
 --- !u!96 &2249854428012012006
 TrailRenderer:
   serializedVersion: 3
