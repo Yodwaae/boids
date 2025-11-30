@@ -190,7 +190,15 @@ public class LocustBoid : MonoBehaviour
 
     }
 
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        Destroy(collision.gameObject);
+        EatCrop();
+    }
+
     private void EatCrop() {
+
+        // Spawn a new locust close to this one
         Vector3 offset = new Vector3(Random.Range(.5f, 1.5f), Random.Range(.5f, 1.5f), 0);
         LocustManager.instance.InstantiateLocust(transform.position + offset, transform.rotation);
     }
