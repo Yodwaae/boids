@@ -117,7 +117,7 @@ public class LocustBoid : MonoBehaviour
         MoveFurther();
         AvoidWalls();
 
-        //
+        // If the timer elapsed changed the
         if (Time.time > timeStamp + nextStateTimer)
             ChangeState();
 
@@ -256,7 +256,7 @@ public class LocustBoid : MonoBehaviour
             // Compute the direction based on the angle and based direction
             Vector3 direction = Quaternion.Euler(0 ,0, angle) * baseDirection;
 
-            if (Physics.Raycast(transform.position, baseDirection, out RaycastHit hit, avoidDistance)) {
+            if (Physics.Raycast(transform.position, direction, out RaycastHit hit, avoidDistance)) {
 
                 // Push the boid away from the obstacle based on the normal
                 Vector3 normal = hit.normal;
