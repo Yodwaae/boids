@@ -2,6 +2,15 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
+public enum LocustStates
+{
+    None,
+    Young,
+    Mature,
+    Old,
+}
+
+
 public class LocustBoid : MonoBehaviour
 {
     // TODO It would be more optimised to check the distance before, build a list with it, then pass that to the three functions as arg
@@ -9,7 +18,7 @@ public class LocustBoid : MonoBehaviour
     // NOTE : No need to enforce min < max in editor as Unity will swap them anyway in Random.Range() if need be
     [Header("Boid Settings")]
     public float minVelocity = 1f;
-    public float maxVelocity = 5f;
+    private float maxVelocity = 5f;
 
     public float closerFactor = 50f;   // Cohesion
     public float withFactor = 20f;      // Alignment
@@ -24,6 +33,26 @@ public class LocustBoid : MonoBehaviour
 
     private Vector2 velocity;
 
+
+    [Header("State Machine Settings")]
+    public float youngTimer = 10f;
+    public float youngMaxVelocity = 8f;
+    public Material youngMaterial;
+
+    public float matureTimer = 30f;
+    public float matureMaxVelocity = 5f;
+    public Material matureMaterial;
+
+
+    public float oldTimer = 10f;
+    public float oldMaxVelocity = 3f;
+    public Material oldMaterial;
+
+    private float timeStamp; // TODO Change name
+    private float nextStateTimer;
+    private LocustStates state;
+
+
     private void Start()
     {
         // Random Velocity Initialisation
@@ -32,6 +61,51 @@ public class LocustBoid : MonoBehaviour
 
         // Add itself to the list of boids
         LocustManager.boids.Add(this);
+
+        // Init state
+        ChangeState();
+    }
+
+    // TODO Useful helper function ? Shouldn't I just a reference to the main material in Start and manually do the change ?
+    private void ChangeMainMaterial(Material newMaterial) { GetComponent<MeshRenderer>().material = newMaterial; }
+
+    private void ChangeState() {
+
+        // Register the time the change happened
+        timeStamp = Time.time;
+
+        switch (state) {
+
+            // None -> Young (Initialisation)
+            case LocustStates.None:
+                state = LocustStates.Young;
+                maxVelocity = youngMaxVelocity;
+                nextStateTimer = youngTimer;
+                ChangeMainMaterial(youngMaterial);
+                break;
+
+            // Young -> Mature
+            case LocustStates.Young:
+                state = LocustStates.Mature;
+                maxVelocity = matureMaxVelocity;
+                nextStateTimer = matureTimer;
+                ChangeMainMaterial(matureMaterial);
+                break;
+
+            // Mature -> Old
+            case LocustStates.Mature:
+                state = LocustStates.Old;
+                maxVelocity = oldMaxVelocity;
+                nextStateTimer = oldTimer;
+                ChangeMainMaterial(oldMaterial);
+                break;
+
+            // Old -> Death
+            case LocustStates.Old:
+                LocustManager.boids.Remove(this);
+                Destroy(gameObject);
+                break;
+        }
     }
 
 
@@ -43,6 +117,10 @@ public class LocustBoid : MonoBehaviour
         MoveFurther();
         AvoidWalls();
 
+        //
+        if (Time.time > timeStamp + nextStateTimer)
+            ChangeState();
+
         // Clamp the velocity between min and max velocity
         if (velocity.magnitude > maxVelocity)
             velocity = velocity.normalized * maxVelocity;
@@ -52,8 +130,9 @@ public class LocustBoid : MonoBehaviour
             // Move the boid
             transform.position += (new Vector3(velocity.x, velocity.y, 0f) * Time.deltaTime);
 
+        // Rotate the boids
         if (velocity.sqrMagnitude > 0.0001f)
-            transform.right = velocity;     // or transform.up = velocity depending on your sprite
+            transform.right = velocity;
 
     }
 
