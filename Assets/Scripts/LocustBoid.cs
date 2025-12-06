@@ -17,46 +17,48 @@ public class LocustBoid : MonoBehaviour
 
     // NOTE : No need to enforce min < max in editor as Unity will swap them anyway in Random.Range() if need be
     [Header("Boid Settings")]
+    // VELOCITY
     public float minVelocity = 1f;
     private float maxVelocity = 5f;
-
+    // MOVEMENTS FACTORS
     public float closerFactor = 50f;   // Cohesion
     public float withFactor = 20f;      // Alignment
     public float furtherFactor = 1.5f;    // Separation
-
+    public float avoidFactor = 500f;
+    // DISTANCES
     public float minDistance = .8f;     
     public float neighborRadius = 2.5f;
-
     public float avoidDistance = 1.5f;
-    public float avoidFactor = 500f;
     public float[] avoidRaycastAngles = { 0f, -15f, 15f };
-
+    // MISC
     private Vector2 velocity;
 
-
     [Header("State Machine Settings")]
+    // YOUNG
     public float youngTimer = 10f;
     public float youngMaxVelocity = 8f;
     public int youngChildCount = 0;
     public Material youngMaterial;
-
+    // MATURE
     public float matureTimer = 30f;
     public float matureMaxVelocity = 5f;
     public int matureChildCount = 5;
     public Material matureMaterial;
-
-
+    // OLD
     public float oldTimer = 10f;
     public float oldMaxVelocity = 3f;
     public int oldChildCount = 2;
     public Material oldMaterial;
-
+    // TIMER
     public bool resetTimeStampOnEat;
     private float timeStamp;
     private float nextStateTimer;
+    // MISC
     private LocustStates state;
     private int childCount;
 
+
+    // ===== UNITY BUILT IN =====
 
     private void Start()
     {
@@ -71,8 +73,41 @@ public class LocustBoid : MonoBehaviour
         ChangeState();
     }
 
-    // TODO Useful helper function ? Shouldn't I just a reference to the main material in Start and manually do the change ?
-    private void ChangeMainMaterial(Material newMaterial) { GetComponent<MeshRenderer>().material = newMaterial; }
+    private void Update()
+    {
+        // Compute the boid velocity
+        MoveCloser();
+        MoveWith();
+        MoveFurther();
+        AvoidWalls();
+
+        // If the timer elapsed changed the
+        if (Time.time > timeStamp + nextStateTimer)
+            ChangeState();
+
+        // Clamp the velocity between min and max velocity
+        if (velocity.magnitude > maxVelocity)
+            velocity = velocity.normalized * maxVelocity;
+        else if (velocity.magnitude < minVelocity)
+            velocity = velocity.normalized * minVelocity;
+
+        // Move the boid
+        transform.position += (new Vector3(velocity.x, velocity.y, 0f) * Time.deltaTime);
+
+        // Rotate the boids
+        if (velocity.sqrMagnitude > 0.0001f)
+            transform.right = velocity;
+
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        Destroy(collision.gameObject);
+        EatCrop();
+    }
+
+
+    // ===== STATE MACHINE =====
 
     private void ChangeState() {
 
@@ -116,39 +151,23 @@ public class LocustBoid : MonoBehaviour
         }
     }
 
-
-    private void Update()
+    private void EatCrop()
     {
-        // Compute the boid velocity
-        MoveCloser();
-        MoveWith();
-        MoveFurther();
-        AvoidWalls();
 
-        // If the timer elapsed changed the
-        if (Time.time > timeStamp + nextStateTimer)
-            ChangeState();
+        // Reset the timer for next state if enabled
+        if (resetTimeStampOnEat)
+            timeStamp = Time.time;
 
-        // Clamp the velocity between min and max velocity
-        if (velocity.magnitude > maxVelocity)
-            velocity = velocity.normalized * maxVelocity;
-        else if (velocity.magnitude < minVelocity)
-            velocity = velocity.normalized * minVelocity;
-
-            // Move the boid
-            transform.position += (new Vector3(velocity.x, velocity.y, 0f) * Time.deltaTime);
-
-        // Rotate the boids
-        if (velocity.sqrMagnitude > 0.0001f)
-            transform.right = velocity;
-
+        // Spawn new locusts close to this one
+        for (int i = 0; i < childCount; i++)
+        {
+            Vector3 offset = new Vector3(Random.Range(-1.5f, 1.5f), Random.Range(-1.5f, 1.5f), 0);
+            LocustManager.instance.InstantiateLocust(transform.position + offset, transform.rotation);
+        }
     }
 
-    // ===== HELPERS FUNCTIONS =====
 
-    public float Distance(LocustBoid other) { return Vector2.Distance(transform.position, other.transform.position); }
-
-    // ===== BOIDS THREE RULES =====
+    // ===== BOIDS MOVEMENTS =====
     // TODO Refacto this, proly adding a helper func to reduce code duplication (code dup is kinda crazy rn)
 
     private void MoveCloser() {
@@ -277,24 +296,12 @@ public class LocustBoid : MonoBehaviour
 
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        Destroy(collision.gameObject);
-        EatCrop();
-    }
 
-    private void EatCrop() {
+    // ===== HELPERS FUNCTIONS =====
 
-        // Reset the timer for next state if enabled
-        if (resetTimeStampOnEat)
-            timeStamp = Time.time;
+    public float Distance(LocustBoid other) { return Vector2.Distance(transform.position, other.transform.position); }
 
-        // Spawn new locusts close to this one
-        for (int i  = 0; i < childCount; i++) {
-            Vector3 offset = new Vector3(Random.Range(-1.5f, 1.5f), Random.Range(-1.5f, 1.5f), 0);
-            LocustManager.instance.InstantiateLocust(transform.position + offset, transform.rotation);
-        }
-    }
+    private void ChangeMainMaterial(Material newMaterial) { GetComponent<MeshRenderer>().material = newMaterial; }
 
 }
 
