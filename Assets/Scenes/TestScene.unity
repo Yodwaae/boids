@@ -589,7 +589,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   initialWheatCount: 10
   wheatPrefab: {fileID: 7139194785553445069, guid: ec56fcb8761371743bd26641601b96f4, type: 3}
-  wheatTimer: 3
+  wheatTimer: 1
 --- !u!1001 &708382945
 PrefabInstance:
   m_ObjectHideFlags: 0

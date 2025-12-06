@@ -37,20 +37,25 @@ public class LocustBoid : MonoBehaviour
     [Header("State Machine Settings")]
     public float youngTimer = 10f;
     public float youngMaxVelocity = 8f;
+    public int youngChildCount = 0;
     public Material youngMaterial;
 
     public float matureTimer = 30f;
     public float matureMaxVelocity = 5f;
+    public int matureChildCount = 5;
     public Material matureMaterial;
 
 
     public float oldTimer = 10f;
     public float oldMaxVelocity = 3f;
+    public int oldChildCount = 2;
     public Material oldMaterial;
 
-    private float timeStamp; // TODO Change name
+    public bool resetTimeStampOnEat;
+    private float timeStamp;
     private float nextStateTimer;
     private LocustStates state;
+    private int childCount;
 
 
     private void Start()
@@ -81,6 +86,7 @@ public class LocustBoid : MonoBehaviour
                 state = LocustStates.Young;
                 maxVelocity = youngMaxVelocity;
                 nextStateTimer = youngTimer;
+                childCount = youngChildCount;
                 ChangeMainMaterial(youngMaterial);
                 break;
 
@@ -89,6 +95,7 @@ public class LocustBoid : MonoBehaviour
                 state = LocustStates.Mature;
                 maxVelocity = matureMaxVelocity;
                 nextStateTimer = matureTimer;
+                childCount = matureChildCount;
                 ChangeMainMaterial(matureMaterial);
                 break;
 
@@ -97,6 +104,7 @@ public class LocustBoid : MonoBehaviour
                 state = LocustStates.Old;
                 maxVelocity = oldMaxVelocity;
                 nextStateTimer = oldTimer;
+                childCount = oldChildCount;
                 ChangeMainMaterial(oldMaterial);
                 break;
 
@@ -277,9 +285,15 @@ public class LocustBoid : MonoBehaviour
 
     private void EatCrop() {
 
-        // Spawn a new locust close to this one
-        Vector3 offset = new Vector3(Random.Range(-1.5f, 1.5f), Random.Range(-1.5f, 1.5f), 0);
-        LocustManager.instance.InstantiateLocust(transform.position + offset, transform.rotation);
+        // Reset the timer for next state if enabled
+        if (resetTimeStampOnEat)
+            timeStamp = Time.time;
+
+        // Spawn new locusts close to this one
+        for (int i  = 0; i < childCount; i++) {
+            Vector3 offset = new Vector3(Random.Range(-1.5f, 1.5f), Random.Range(-1.5f, 1.5f), 0);
+            LocustManager.instance.InstantiateLocust(transform.position + offset, transform.rotation);
+        }
     }
 
 }

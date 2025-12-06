@@ -766,13 +766,17 @@ MonoBehaviour:
   - 15
   youngTimer: 10
   youngMaxVelocity: 8
+  youngChildCount: 0
   youngMaterial: {fileID: 2100000, guid: 7b98f20d75898fb41bc6c9464a88be3c, type: 2}
   matureTimer: 30
   matureMaxVelocity: 5
+  matureChildCount: 5
   matureMaterial: {fileID: 2100000, guid: 5cc8ebf1ab404b3459205467937b4779, type: 2}
   oldTimer: 10
   oldMaxVelocity: 3
+  oldChildCount: 2
   oldMaterial: {fileID: 2100000, guid: fbffc6735b104364f93b95851ca63a8a, type: 2}
+  resetTimeStampOnEat: 1
 --- !u!96 &2249854428012012006
 TrailRenderer:
   serializedVersion: 3
